@@ -8,13 +8,12 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
+import jakarta.persistence.*;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -35,35 +34,46 @@ public class Usuario implements UserDetails {
     @Column(name = "id_usuario")
     private Long id;
 
-    @Column(name = "id_rol", nullable = false)
-    @ManyToOne
-    private Rol idRol;
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "id_rol", nullable = false)
+    private Rol rol;
 
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "id_colonia", nullable = false)
+    private Colonia colonia;
+
+    @NotBlank
     @Column(nullable = false, length = 100)
     private String nombre;
 
+    @NotBlank
     @Column(name = "apellido_paterno", nullable = false, length = 100)
     private String apellidoPaterno;
 
     @Column(name = "apellido_materno", length = 100)
     private String apellidoMaterno;
 
+    @NotBlank
+    @Email
     @Column(nullable = false, length = 150, unique = true)
     private String correo;
 
+    @JsonIgnore
     @Column(name = "password_hash", nullable = false, length = 100)
     private String passwordHash;
 
-    @Column(nullable = false, length = 100)
-    private Boolean activo;
+    @Builder.Default
+    @Column(nullable = false)
+    private boolean activo = true;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of(
-                new SimpleGrantedAuthority("ROLE_" + idRol.getNombre()));
+                new SimpleGrantedAuthority("ROLE_" + rol.getNombre()));
     }
 
     @Override
+    @JsonIgnore
     public @Nullable String getPassword() {
         return passwordHash;
     }
@@ -73,4 +83,8 @@ public class Usuario implements UserDetails {
         return correo;
     }
 
+    @Override
+    public boolean isEnabled() {
+        return activo;
+    }
 }

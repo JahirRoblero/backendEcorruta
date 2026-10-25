@@ -1,6 +1,9 @@
 package com.backend.ecorruta.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+
 import lombok.*;
 
 @Entity
@@ -16,9 +19,12 @@ public class Rol {
     @Column(name = "id_rol")
     private Long idRol;
 
-    @Column(nullable = false, unique = true, length = 60)
+    @NotBlank(message = "El nombre del rol es obligatorio")
+    @Size(max = 60, message = "El nombre no puede superar los 60 caracteres")
+    @Column(name = "nombre", nullable = false, unique = true, length = 60)
     private String nombre;
 
-    @Column(length = 100)
+    @Size(max = 100, message = "La descripción no puede superar los 100 caracteres")
+    @Column(name = "descripcion", length = 100)
     private String descripcion;
 }
