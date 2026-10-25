@@ -14,6 +14,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -39,7 +40,7 @@ public class Vehiculo {
     private String numeroEconomico;
 
     @NotBlank
-    @Column(nullable = false, length = 15)
+    @Column(nullable = false, length = 15, unique = true)
     private String placa;
 
     @Column(length = 50)
@@ -48,6 +49,7 @@ public class Vehiculo {
     @Column(length = 40)
     private String modelo;
 
+    @Positive
     @Column(name = "capacidad_kg", precision = 10, scale = 2)
     private BigDecimal capacidadKg;
 
