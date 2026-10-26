@@ -3,8 +3,6 @@ package com.backend.ecorruta.model;
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 
-import com.backend.ecorruta.enumeraciones.EstadoReporte;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -21,6 +19,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import com.backend.ecorruta.enumeraciones.EstadoReporte;
 
 @Entity
 @Table(name = "reporte")
@@ -71,5 +70,7 @@ public class Reporte {
 
     @Column(name = "fecha_atencion")
     private OffsetDateTime fechaAtencion;
+
+    
 
 }
