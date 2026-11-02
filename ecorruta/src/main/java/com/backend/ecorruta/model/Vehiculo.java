@@ -1,65 +1,55 @@
+
 package com.backend.ecorruta.model;
 
 import java.math.BigDecimal;
 
 import com.backend.ecorruta.enumeraciones.EstadoVehiculo;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Positive;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import jakarta.persistence.*;
+import jakarta.validation.constraints.*;
+
+import lombok.*;
 
 @Entity
 @Table(name = "vehiculo")
 @Getter
 @Setter
-@AllArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor
 @Builder
 public class Vehiculo {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id_vehiculo", nullable = false)
-    private Long idVehiculo;
+    @NotBlank()
+    @Size(max = 15)
+    @Column(name = "placa", nullable = false, length = 15)
+    private String placa;
 
-    @NotBlank
+    @NotBlank()
+    @Size(max = 60)
     @Column(name = "numero_economico", nullable = false, unique = true, length = 60)
     private String numeroEconomico;
 
-    @NotBlank
-    @Column(nullable = false, length = 15, unique = true)
-    private String placa;
-
-    @Column(length = 50)
+    @Size(max = 50)
+    @Column(name = "marca", length = 50)
     private String marca;
 
-    @Column(length = 40)
+    @Size(max = 40)
+    @Column(name = "modelo", length = 40)
     private String modelo;
 
-    @Positive
+    @Positive()
+    @Digits(integer = 8, fraction = 2, message = "La capacidad debe tener máximo 8 enteros y 2 decimales")
     @Column(name = "capacidad_kg", precision = 10, scale = 2)
     private BigDecimal capacidadKg;
 
-    @NotNull
+    @NotNull()
     @Enumerated(EnumType.STRING)
-    @Column(name = "estado", nullable = false)
     @Builder.Default
+    @Column(name = "estado", nullable = false, length = 30)
     private EstadoVehiculo estado = EstadoVehiculo.DISPONIBLE;
 
-    @Column(nullable = false)
     @Builder.Default
+    @Column(name = "activo", nullable = false)
     private boolean activo = true;
 }

@@ -1,72 +1,85 @@
+
 package com.backend.ecorruta.model;
 
 import java.math.BigDecimal;
 import java.util.HashSet;
 import java.util.Set;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.JoinTable;
-import jakarta.persistence.ManyToMany;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
-import jakarta.validation.constraints.DecimalMax;
-import jakarta.validation.constraints.DecimalMin;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import jakarta.persistence.*;
+import jakarta.validation.constraints.*;
+
+import lombok.*;
 
 @Entity
 @Table(name = "punto_acopio")
+@IdClass(PuntoAcopioId.class)
 @Getter
 @Setter
-@AllArgsConstructor
 @NoArgsConstructor
 public class PuntoAcopio {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id_punto_acopio")
-    private Long id;
+    @NotBlank(message = "El nombre de la colonia es obligatorio")
+    @Size(max = 100)
+    @Column(name = "colonia_nombre", nullable = false, length = 100)
+    private String coloniaNombre;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "id_colonia", nullable = false)
-    private Colonia colonia;
+    @Id
+    @NotBlank(message = "El código postal es obligatorio")
+    @Pattern(regexp = "\\d{5}", message = "El código postal debe contener exactamente 5 dígitos")
+    @Column(name = "colonia_codigo_postal", nullable = false, columnDefinition = "CHAR(5)")
+    private String coloniaCodigoPostal;
 
-    @NotBlank
-    @Size(max = 60)
-    @Column(length = 60, nullable = false)
+    @Id
+    @NotBlank(message = "El nombre del punto de acopio es obligatorio")
+    @Size(max = 60, message = "El nombre no puede superar los 60 caracteres")
+    @Column(name = "nombre", nullable = false, length = 60)
     private String nombre;
 
-    @Column(columnDefinition = "TEXT")
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumns({
+            @JoinColumn(name = "colonia_nombre", referencedColumnName = "nombre", insertable = false, updatable = false),
+            @JoinColumn(name = "colonia_codigo_postal", referencedColumnName = "codigo_postal", insertable = false, updatable = false)
+    })
+    private Colonia colonia;
+
+    @Column(name = "direccion", columnDefinition = "TEXT")
     private String direccion;
 
-    @NotNull
+    @NotNull(message = "La latitud es obligatoria")
     @DecimalMin("-90.0")
     @DecimalMax("90.0")
-    @Column(nullable = false, precision = 8, scale = 6)
+    @Digits(integer = 2, fraction = 6)
+    @Column(name = "latitud", nullable = false, precision = 8, scale = 6)
     private BigDecimal latitud;
 
-    @NotNull
+    @NotNull(message = "La longitud es obligatoria")
     @DecimalMin("-180.0")
     @DecimalMax("180.0")
-    @Column(nullable = false, precision = 9, scale = 6)
+    @Digits(integer = 3, fraction = 6)
+    @Column(name = "longitud", nullable = false, precision = 9, scale = 6)
     private BigDecimal longitud;
 
-    @Column(nullable = false)
+    @Column(name = "activo", nullable = false)
     private boolean activo = true;
 
     @ManyToMany(fetch = FetchType.LAZY)
-    @JoinTable(name = "punto_acopio_tipo_residuo", joinColumns = @JoinColumn(name = "id_punto_acopio"), inverseJoinColumns = @JoinColumn(name = "id_tipo_residuo"))
+    @JoinTable(name = "punto_acopio_tipo_residuo", joinColumns = {
+            @JoinColumn(name = "colonia_nombre", referencedColumnName = "colonia_nombre"),
+            @JoinColumn(name = "colonia_codigo_postal", referencedColumnName = "colonia_codigo_postal"),
+            @JoinColumn(name = "punto_acopio_nombre", referencedColumnName = "nombre")
+    }, inverseJoinColumns = {
+            @JoinColumn(name = "tipo_residuo_nombre", referencedColumnName = "nombre")
+    })
     private Set<TipoResiduo> tiposResiduos = new HashSet<>();
 
+    public void setColonia(Colonia colonia) {
+        if (colonia == null) {
+            throw new IllegalArgumentException("La colonia es obligatoria");
+        }
+
+        this.colonia = colonia;
+        this.coloniaNombre = colonia.getNombreColonia();
+        this.coloniaCodigoPostal = colonia.getCodigoPostal();
+    }
 }

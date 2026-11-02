@@ -15,13 +15,9 @@ import lombok.*;
 public class Rol {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id_rol")
-    private Long idRol;
-
     @NotBlank(message = "El nombre del rol es obligatorio")
     @Size(max = 60, message = "El nombre no puede superar los 60 caracteres")
-    @Column(name = "nombre", nullable = false, unique = true, length = 60)
+    @Column(name = "nombre", length = 60)
     private String nombre;
 
     @Size(max = 100, message = "La descripción no puede superar los 100 caracteres")

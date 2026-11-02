@@ -1,3 +1,4 @@
+
 package com.backend.ecorruta.model;
 
 import java.math.BigDecimal;
@@ -5,65 +6,62 @@ import java.time.OffsetDateTime;
 
 import com.backend.ecorruta.enumeraciones.EstadoReporte;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
-import jakarta.validation.constraints.DecimalMax;
-import jakarta.validation.constraints.DecimalMin;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import jakarta.persistence.*;
+import jakarta.validation.constraints.*;
+
+import lombok.*;
 
 @Entity
 @Table(name = "reporte")
 @Getter
 @Setter
-@AllArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor
 public class Reporte {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_reporte")
-    private Long idReporte;
+    private Integer idReporte;
 
-    @ManyToOne(optional = false)
-    @JoinColumn(name = "id_usuario", nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "correo_usuario", referencedColumnName = "correo", nullable = false)
     private Usuario usuario;
 
-    @ManyToOne(optional = false)
-    @JoinColumn(name = "id_colonia", nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumns({
+            @JoinColumn(name = "colonia_nombre", referencedColumnName = "nombre", nullable = false),
+            @JoinColumn(name = "colonia_codigo_postal", referencedColumnName = "codigo_postal", nullable = false)
+    })
     private Colonia colonia;
 
-    @Column(nullable = false, length = 60)
-    private String tipo;
+    @NotBlank(message = "El título es obligatorio")
+    @Size(max = 60, message = "El título no puede superar los 60 caracteres")
+    @Column(name = "titulo", nullable = false, length = 60)
+    private String titulo;
 
-    @Column(columnDefinition = "Text", nullable = false)
+    @NotBlank(message = "La descripción es obligatoria")
+    @Column(name = "descripcion", nullable = false, columnDefinition = "TEXT")
     private String descripcion;
 
     @Column(name = "imagen_url", columnDefinition = "TEXT")
     private String imagenUrl;
 
-    @DecimalMin("-90.0")
-    @DecimalMax("90.0")
-    @Column(precision = 8, scale = 6)
+    @DecimalMin(value = "-90.0", message = "La latitud mínima es -90")
+    @DecimalMax(value = "90.0", message = "La latitud máxima es 90")
+    @Digits(integer = 2, fraction = 6)
+    @Column(name = "latitud", precision = 8, scale = 6)
     private BigDecimal latitud;
 
-    @DecimalMin("-180.0")
-    @DecimalMax("180.0")
-    @Column(precision = 9, scale = 6)
+    @DecimalMin(value = "-180.0", message = "La longitud mínima es -180")
+    @DecimalMax(value = "180.0", message = "La longitud máxima es 180")
+    @Digits(integer = 3, fraction = 6)
+    @Column(name = "longitud", precision = 9, scale = 6)
     private BigDecimal longitud;
 
+    @NotNull(message = "El estado es obligatorio")
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(name = "estado", nullable = false, length = 20)
     private EstadoReporte estado = EstadoReporte.PENDIENTE;
 
     @Column(name = "fecha_reporte", nullable = false, insertable = false, updatable = false)
@@ -71,5 +69,4 @@ public class Reporte {
 
     @Column(name = "fecha_atencion")
     private OffsetDateTime fechaAtencion;
-
 }

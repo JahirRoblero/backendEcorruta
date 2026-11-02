@@ -1,3 +1,4 @@
+
 package com.backend.ecorruta.model;
 
 import jakarta.persistence.*;
@@ -9,6 +10,7 @@ import lombok.*;
 
 @Entity
 @Table(name = "colonia")
+@IdClass(ColoniaId.class)
 @Getter
 @Setter
 @NoArgsConstructor
@@ -16,15 +18,12 @@ import lombok.*;
 public class Colonia {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id_colonia", nullable = false)
-    private Long idColonia;
-
     @NotBlank(message = "El nombre de la colonia es obligatorio")
     @Size(max = 100, message = "El nombre no puede superar los 100 caracteres")
     @Column(name = "nombre", nullable = false, length = 100)
     private String nombreColonia;
 
+    @Id
     @NotBlank(message = "El código postal es obligatorio")
     @Pattern(regexp = "\\d{5}", message = "El código postal debe contener exactamente 5 dígitos")
     @Column(name = "codigo_postal", nullable = false, length = 5, columnDefinition = "CHAR(5)")

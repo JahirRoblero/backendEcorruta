@@ -1,3 +1,4 @@
+
 package com.backend.ecorruta.enumeraciones;
 
 public enum EstadoVehiculo {

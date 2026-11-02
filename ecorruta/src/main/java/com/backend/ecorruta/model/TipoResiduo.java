@@ -1,39 +1,30 @@
+
 package com.backend.ecorruta.model;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import jakarta.validation.constraints.Size;
+
+import lombok.*;
 
 @Entity
 @Table(name = "tipo_residuo")
 @Getter
 @Setter
-@AllArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor
 @Builder
 public class TipoResiduo {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id_tipo_residuo", nullable = false)
-    private Long idTipoResiduo;
-
-    @NotBlank
-    @Column(length = 60, nullable = false, unique = true)
+    @NotBlank(message = "El nombre del tipo de residuo es obligatorio")
+    @Size(max = 60, message = "El nombre no puede superar los 60 caracteres")
+    @Column(name = "nombre", nullable = false, length = 60)
     private String nombre;
 
-    @Column(columnDefinition = "TEXT")
+    @Column(name = "descripcion", columnDefinition = "TEXT")
     private String descripcion;
 
-    @Column(columnDefinition = "TEXT")
+    @Column(name = "instrucciones", columnDefinition = "TEXT")
     private String instrucciones;
 }

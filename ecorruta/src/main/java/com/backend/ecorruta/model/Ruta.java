@@ -1,3 +1,4 @@
+
 package com.backend.ecorruta.model;
 
 import java.math.BigDecimal;
@@ -5,57 +6,48 @@ import java.time.OffsetDateTime;
 import java.util.HashSet;
 import java.util.Set;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.JoinTable;
-import jakarta.persistence.ManyToMany;
-import jakarta.persistence.Table;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.PositiveOrZero;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import jakarta.persistence.*;
+import jakarta.validation.constraints.*;
+
+import lombok.*;
 
 @Entity
 @Table(name = "ruta")
 @Getter
 @Setter
-@AllArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor
 public class Ruta {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id_ruta")
-    private Long idRuta;
+        @Id
+        @NotBlank(message = "El nombre de la ruta es obligatorio")
+        @Size(max = 60, message = "El nombre no puede superar los 60 caracteres")
+        @Column(name = "nombre", nullable = false, length = 60)
+        private String nombre;
 
-    @NotBlank
-    @Column(nullable = false, length = 60)
-    private String nombre;
+        @Column(name = "descripcion", columnDefinition = "TEXT")
+        private String descripcion;
 
-    @Column(columnDefinition = "TEXT")
-    private String descripcion;
+        @PositiveOrZero(message = "La distancia no puede ser negativa")
+        @Digits(integer = 6, fraction = 2, message = "La distancia debe tener máximo 6 enteros y 2 decimales")
+        @Column(name = "distancia_km", precision = 8, scale = 2)
+        private BigDecimal distanciaKm;
 
-    @PositiveOrZero
-    @Column(name = "distancia_km", precision = 8, scale = 2)
-    private BigDecimal distanciaKm;
+        @Column(name = "activo", nullable = false)
+        private boolean activo = true;
 
-    @Column(nullable = false)
-    private boolean activo = true;
+        @Column(name = "fecha_creacion", nullable = false, insertable = false, updatable = false)
+        private OffsetDateTime fechaCreacion;
 
-    @Column(name = "fecha_creacion", nullable = false, insertable = false, updatable = false)
-    private OffsetDateTime fechaCreacion;
+        @Column(name = "geometria", columnDefinition = "TEXT")
+        private String geometria;
 
-    @Column(columnDefinition = "TEXT")
-    private String geometria;
-
-    @ManyToMany(fetch = FetchType.LAZY)
-    @JoinTable(name = "ruta_colonia", joinColumns = @JoinColumn(name = "id_ruta"), inverseJoinColumns = @JoinColumn(name = "id_colonia"))
-    private Set<Colonia> colonias = new HashSet<>();
+        @ManyToMany(fetch = FetchType.LAZY)
+        @JoinTable(name = "ruta_colonia", joinColumns = {
+                        @JoinColumn(name = "ruta_nombre", referencedColumnName = "nombre")
+        }, inverseJoinColumns = {
+                        @JoinColumn(name = "colonia_nombre", referencedColumnName = "nombre"),
+                        @JoinColumn(name = "colonia_codigo_postal", referencedColumnName = "codigo_postal")
+        })
+        private Set<Colonia> colonias = new HashSet<>();
 }
