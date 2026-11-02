@@ -1,7 +1,11 @@
+
 package com.backend.ecorruta.config;
 
 import java.util.List;
 
+import com.backend.ecorruta.security.FiltroJwt;
+
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -13,6 +17,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -24,67 +29,93 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class ConfiguracionSeguridad {
 
+        private final FiltroJwt filtroJwt;
+
         @Bean
-        public SecurityFilterChain cadenaSeguridad(HttpSecurity http) throws Exception {
-                http.csrf(
-                                configuracion -> configuracion.disable())
-                                .cors(
-                                                configuracion -> configuracion
-                                                                .configurationSource(fuenteDeConfiguracionSource()))
+        public SecurityFilterChain cadenaSeguridad(HttpSecurity http)
+                        throws Exception {
 
-                                .sessionManagement(
-                                                configuracion -> configuracion
-                                                                .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                http
+                                .csrf(configuracion -> configuracion.disable())
 
-                                .authorizeHttpRequests(autorizacion -> autorizacion.requestMatchers(
-                                                "/api/auth/**",
-                                                "/api/recuperacion").permitAll()
+                                .cors(configuracion -> configuracion
+                                                .configurationSource(fuenteDeConfiguracionSource()))
+
+                                .sessionManagement(configuracion -> configuracion
+                                                .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+
+                                .authorizeHttpRequests(autorizacion -> autorizacion
+
                                                 .requestMatchers(HttpMethod.OPTIONS, "/**")
                                                 .permitAll()
+
+                                                .requestMatchers(HttpMethod.POST, "/api/auth/login",
+                                                                "/api/auth/registro")
+                                                .permitAll()
+
+                                                .requestMatchers("/api/recuperacion")
+                                                .permitAll()
+
                                                 .requestMatchers("/api/admin/**")
                                                 .hasRole("ADMINISTRADOR")
+
                                                 .anyRequest()
                                                 .authenticated())
 
-                                .exceptionHandling(configuracion -> configuracion.authenticationEntryPoint(
-                                                (solicitud, respuesta, excepcion) -> {
-                                                        respuesta.setStatus(401);
-                                                        respuesta.setContentType(
-                                                                        "application/json");
-                                                        respuesta.getWriter().write(
-                                                                        """
-                                                                                        {
-                                                                                            "mensaje" : "Debes iniciar sesión"
-                                                                                        }
-                                                                                        """);
-                                                })
+                                .exceptionHandling(configuracion -> configuracion
+
+                                                .authenticationEntryPoint(
+                                                                (solicitud, respuesta, excepcion) -> {
+                                                                        respuesta.setStatus(401);
+                                                                        respuesta.setContentType("application/json");
+                                                                        respuesta.setCharacterEncoding("UTF-8");
+                                                                        respuesta.getWriter().write(
+                                                                                        """
+                                                                                                        {
+                                                                                                            "mensaje": "Debes iniciar sesión"
+                                                                                                        }
+                                                                                                        """);
+                                                                })
 
                                                 .accessDeniedHandler(
                                                                 (solicitud, respuesta, excepcion) -> {
                                                                         respuesta.setStatus(403);
-                                                                        respuesta.setContentType(
-                                                                                        "application/json");
+                                                                        respuesta.setContentType("application/json");
+                                                                        respuesta.setCharacterEncoding("UTF-8");
                                                                         respuesta.getWriter().write(
                                                                                         """
-                                                                                                                {
-                                                                                                                    "mensaje" : "No tienes permisos para acceder a este recurso"}
+                                                                                                        {
+                                                                                                            "mensaje": "No tienes permisos para acceder a este recurso"
+                                                                                                        }
                                                                                                         """);
-                                                                })
+                                                                }))
 
-                                );
+                                .addFilterBefore(
+                                                filtroJwt,
+                                                UsernamePasswordAuthenticationFilter.class);
+
                 return http.build();
         }
 
         @Bean
-        public CorsConfigurationSource fuenteDeConfiguracionSource() {
-                CorsConfiguration configuration = new CorsConfiguration();
+        public FilterRegistrationBean<FiltroJwt> registroFiltroJwt() {
+                FilterRegistrationBean<FiltroJwt> registro = new FilterRegistrationBean<>(filtroJwt);
 
-                configuration.setAllowedOrigins(
+                registro.setEnabled(false);
+                return registro;
+        }
+
+        @Bean
+        public CorsConfigurationSource fuenteDeConfiguracionSource() {
+
+                CorsConfiguration configuracion = new CorsConfiguration();
+
+                configuracion.setAllowedOrigins(
                                 List.of(
                                                 "http://localhost:5173",
                                                 "https://ecorruta.com.mx"));
 
-                configuration.setAllowedMethods(
+                configuracion.setAllowedMethods(
                                 List.of(
                                                 "GET",
                                                 "POST",
@@ -93,26 +124,24 @@ public class ConfiguracionSeguridad {
                                                 "DELETE",
                                                 "OPTIONS"));
 
-                configuration.setAllowedHeaders(
-                                List.of("*"));
-
-                configuration.setAllowCredentials(true);
+                configuracion.setAllowedHeaders(List.of("*"));
+                configuracion.setAllowCredentials(true);
 
                 UrlBasedCorsConfigurationSource fuente = new UrlBasedCorsConfigurationSource();
 
-                fuente.registerCorsConfiguration("/**", configuration);
+                fuente.registerCorsConfiguration("/**", configuracion);
+
                 return fuente;
         }
 
         @Bean
-        public PasswordEncoder codifiEficadorDeContraseña() {
+        public PasswordEncoder codificadorDeContrasena() {
                 return new BCryptPasswordEncoder();
         }
 
         @Bean
-        public AuthenticationManager administradorAuthenticacion(AuthenticationConfiguration configuracion)
-                        throws Exception {
+        public AuthenticationManager administradorAuthenticacion(
+                        AuthenticationConfiguration configuracion) throws Exception {
                 return configuracion.getAuthenticationManager();
         }
-
 }

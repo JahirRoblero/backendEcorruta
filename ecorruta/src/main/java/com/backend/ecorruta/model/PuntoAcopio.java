@@ -5,6 +5,9 @@ import java.math.BigDecimal;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
+
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 
@@ -27,7 +30,8 @@ public class PuntoAcopio {
     @Id
     @NotBlank(message = "El código postal es obligatorio")
     @Pattern(regexp = "\\d{5}", message = "El código postal debe contener exactamente 5 dígitos")
-    @Column(name = "colonia_codigo_postal", nullable = false, columnDefinition = "CHAR(5)")
+    @JdbcTypeCode(SqlTypes.CHAR)
+    @Column(name = "colonia_codigo_postal", nullable = false, length = 5)
     private String coloniaCodigoPostal;
 
     @Id

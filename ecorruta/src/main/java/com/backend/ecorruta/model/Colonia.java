@@ -5,7 +5,8 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
-
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import lombok.*;
 
 @Entity
@@ -26,7 +27,8 @@ public class Colonia {
     @Id
     @NotBlank(message = "El código postal es obligatorio")
     @Pattern(regexp = "\\d{5}", message = "El código postal debe contener exactamente 5 dígitos")
-    @Column(name = "codigo_postal", nullable = false, length = 5, columnDefinition = "CHAR(5)")
+    @JdbcTypeCode(SqlTypes.CHAR)
+    @Column(name = "codigo_postal", nullable = false, length = 5)
     private String codigoPostal;
 
     @Column(name = "activo", nullable = false)

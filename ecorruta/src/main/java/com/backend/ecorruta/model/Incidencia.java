@@ -43,7 +43,7 @@ public class Incidencia {
     @Column(name = "descripcion", nullable = false, columnDefinition = "TEXT")
     private String descripcion;
 
-    @Column(name = "fecha", nullable = false, insertable = false, updatable = false)
+    @Column(name = "fecha_hora", nullable = false, insertable = false, updatable = false)
     private OffsetDateTime fecha;
 
     @NotNull(message = "El estado es obligatorio")
