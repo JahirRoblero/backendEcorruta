@@ -30,4 +30,19 @@ public class ServicioReporte {
                 .toList();
     }
 
+    public List<ReporteResumenDTO> obtenerRecientesPorColonia(
+            String correo) {
+
+        return reporteRepository
+                .buscarRecientesPorColoniaUsuario(correo)
+                .stream()
+                .map(reporte -> new ReporteResumenDTO(
+                        reporte.getIdReporte(),
+                        reporte.getTitulo(),
+                        reporte.getDescripcion(),
+                        reporte.getImagenUrl(),
+                        reporte.getEstado()))
+                .toList();
+    }
+
 }

@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.*;
 
 import com.backend.ecorruta.dto.ReporteResumenDTO;
 import com.backend.ecorruta.service.ServicioReporte;
-
+import org.springframework.security.core.Authentication;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -22,4 +22,14 @@ public class ControladorReporte {
 
         return servicioReporte.obtenerAleatorios();
     }
+
+    @GetMapping("/recientes")
+    public List<ReporteResumenDTO> obtenerRecientes(
+            Authentication authentication) {
+
+        String correo = authentication.getName();
+
+        return servicioReporte.obtenerRecientesPorColonia(correo);
+    }
+
 }

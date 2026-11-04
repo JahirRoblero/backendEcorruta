@@ -37,4 +37,22 @@ public interface ReporteRepository
                         """, nativeQuery = true)
         List<ReporteVista> buscarAleatorios();
 
+        @Query(value = """
+                        SELECT
+                            r.id_reporte AS "idReporte",
+                            r.titulo AS "titulo",
+                            r.descripcion AS "descripcion",
+                            r.imagen_url AS "imagenUrl",
+                            r.estado AS "estado"
+                        FROM reporte r
+                        INNER JOIN usuario u
+                            ON r.colonia_nombre = u.colonia_nombre
+                            AND r.colonia_codigo_postal = u.colonia_codigo_postal
+                        WHERE u.correo = :correo
+                        ORDER BY r.fecha_reporte DESC, r.id_reporte DESC
+                        LIMIT 5
+                        """, nativeQuery = true)
+        List<ReporteVista> buscarRecientesPorColoniaUsuario(
+                        @Param("correo") String correo);
+
 }
