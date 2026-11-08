@@ -41,6 +41,7 @@ dependencies {
     testCompileOnly("org.projectlombok:lombok")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     testAnnotationProcessor("org.projectlombok:lombok")
+    implementation("software.amazon.awssdk:s3:2.57.2")
 }
 
 tasks.withType<Test> {
