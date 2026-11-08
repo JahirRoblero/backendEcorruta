@@ -67,11 +67,20 @@ public class ServicioStorageNeon {
             return "/api/reportes/imagenes/" + nombre;
 
         } catch (IOException | SdkException error) {
+
+            System.err.println(
+                    "ERROR NEON STORAGE: "
+                            + error.getClass().getName());
+
+            System.err.println(
+                    "CAUSA: " + error.getMessage());
+
             throw new ResponseStatusException(
                     HttpStatus.INTERNAL_SERVER_ERROR,
                     "No se pudo subir la fotografía a Neon",
                     error);
         }
+
     }
 
     private String detectarTipo(byte[] bytes) {

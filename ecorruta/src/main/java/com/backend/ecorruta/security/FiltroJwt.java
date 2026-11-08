@@ -45,7 +45,7 @@ public class FiltroJwt extends OncePerRequestFilter {
 
         try {
             String correo = utilidadJwt.obtenerCorreo(token);
-
+            System.out.println("JWT recibido para: " + correo);
             if (correo != null &&
                     SecurityContextHolder.getContext().getAuthentication() == null) {
 
@@ -64,11 +64,18 @@ public class FiltroJwt extends OncePerRequestFilter {
 
                     SecurityContextHolder.getContext()
                             .setAuthentication(autenticacion);
+                    System.out.println("JWT autenticado correctamente");
                 }
             }
 
-        } catch (JwtException | IllegalArgumentException | UsernameNotFoundException e) {
+        } catch (
+                JwtException | IllegalArgumentException | UsernameNotFoundException e) {
             SecurityContextHolder.clearContext();
+
+            System.err.println(
+                    "Error de autenticación JWT: "
+                            + e.getClass().getSimpleName()
+                            + " - " + e.getMessage());
         }
 
         cadena.doFilter(solicitud, respuesta);

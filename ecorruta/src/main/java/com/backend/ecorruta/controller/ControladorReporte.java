@@ -29,68 +29,68 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class ControladorReporte {
 
-    private final ServicioReporte servicioReporte;
-    private final ServicioStorageNeon servicioStorageNeon;
+        private final ServicioReporte servicioReporte;
+        private final ServicioStorageNeon servicioStorageNeon;
 
-    @GetMapping("/aleatorios")
-    public List<ReporteResumenDTO> obtenerAleatorios() {
+        @GetMapping("/aleatorios")
+        public List<ReporteResumenDTO> obtenerAleatorios() {
 
-        return servicioReporte.obtenerAleatorios();
-    }
-
-    @GetMapping("/recientes")
-    public List<ReporteResumenDTO> obtenerRecientes(
-            Authentication authentication) {
-
-        String correo = authentication.getName();
-
-        return servicioReporte
-                .obtenerRecientesPorColonia(correo);
-    }
-
-    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<ReporteRespuestaDTO> crearReporte(
-
-            @Valid @RequestPart("datos") SolicitudCrearReporteDTO datos,
-
-            @RequestPart(value = "imagen", required = false) MultipartFile imagen,
-
-            Authentication authentication) {
-
-        ReporteRespuestaDTO respuesta = servicioReporte.crearReporte(
-                datos,
-                imagen,
-                authentication.getName());
-
-        return ResponseEntity
-                .status(HttpStatus.CREATED)
-                .body(respuesta);
-    }
-
-    @GetMapping("/imagenes/{nombre:.+}")
-    public ResponseEntity<byte[]> obtenerImagen(
-            @PathVariable String nombre) {
-
-        if (!nombre.matches(
-                "[0-9a-fA-F-]{36}\\.(jpg|png|webp)")) {
-            throw new ResponseStatusException(
-                    HttpStatus.BAD_REQUEST,
-                    "Nombre de imagen inválido");
+                return servicioReporte.obtenerAleatorios();
         }
 
-        byte[] imagen = servicioStorageNeon.obtenerImagen(nombre);
+        @GetMapping("/recientes")
+        public List<ReporteResumenDTO> obtenerRecientes(
+                        Authentication authentication) {
 
-        MediaType tipo = nombre.endsWith(".png")
-                ? MediaType.IMAGE_PNG
-                : nombre.endsWith(".webp")
-                        ? MediaType.parseMediaType("image/webp")
-                        : MediaType.IMAGE_JPEG;
+                String correo = authentication.getName();
 
-        return ResponseEntity.ok()
-                .contentType(tipo)
-                .header(
-                        HttpHeaders.CACHE_CONTROL,
-                        "public, max-age=3600")
-                .body(imagen);
-    }
+                return servicioReporte
+                                .obtenerRecientesPorColonia(correo);
+        }
+
+        @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+        public ResponseEntity<ReporteRespuestaDTO> crearReporte(
+
+                        @Valid @RequestPart("datos") SolicitudCrearReporteDTO datos,
+
+                        @RequestPart(value = "imagen", required = false) MultipartFile imagen,
+
+                        Authentication authentication) {
+
+                ReporteRespuestaDTO respuesta = servicioReporte.crearReporte(
+                                datos,
+                                imagen,
+                                authentication.getName());
+
+                return ResponseEntity
+                                .status(HttpStatus.CREATED)
+                                .body(respuesta);
+        }
+
+        @GetMapping("/imagenes/{nombre:.+}")
+        public ResponseEntity<byte[]> obtenerImagen(
+                        @PathVariable("nombre") String nombre) {
+
+                if (!nombre.matches(
+                                "[0-9a-fA-F-]{36}\\.(jpg|png|webp)")) {
+                        throw new ResponseStatusException(
+                                        HttpStatus.BAD_REQUEST,
+                                        "Nombre de imagen inválido");
+                }
+
+                byte[] imagen = servicioStorageNeon.obtenerImagen(nombre);
+
+                MediaType tipo = nombre.endsWith(".png")
+                                ? MediaType.IMAGE_PNG
+                                : nombre.endsWith(".webp")
+                                                ? MediaType.parseMediaType("image/webp")
+                                                : MediaType.IMAGE_JPEG;
+
+                return ResponseEntity.ok()
+                                .contentType(tipo)
+                                .header(
+                                                HttpHeaders.CACHE_CONTROL,
+                                                "public, max-age=3600")
+                                .body(imagen);
+        }
 }

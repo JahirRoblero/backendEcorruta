@@ -21,7 +21,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-
+import jakarta.servlet.DispatcherType;
 import lombok.RequiredArgsConstructor;
 
 @Configuration
@@ -45,6 +45,9 @@ public class ConfiguracionSeguridad {
                                                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
                                 .authorizeHttpRequests(autorizacion -> autorizacion
+
+                                                .dispatcherTypeMatchers(DispatcherType.ERROR)
+                                                .permitAll()
 
                                                 .requestMatchers(HttpMethod.OPTIONS, "/**")
                                                 .permitAll()
