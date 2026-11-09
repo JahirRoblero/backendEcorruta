@@ -59,6 +59,11 @@ public class ConfiguracionSeguridad {
                                                 .requestMatchers("/api/recuperacion")
                                                 .permitAll()
 
+                                                .requestMatchers(
+                                                                HttpMethod.GET,
+                                                                "/api/reportes/imagenes/**")
+                                                .permitAll()
+
                                                 .requestMatchers("/api/admin/**")
                                                 .hasRole("ADMINISTRADOR")
 

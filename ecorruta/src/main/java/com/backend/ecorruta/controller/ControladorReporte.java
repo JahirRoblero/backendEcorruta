@@ -48,6 +48,11 @@ public class ControladorReporte {
                                 .obtenerRecientesPorColonia(correo);
         }
 
+        @GetMapping("/todos-reportes")
+        public List<ReporteResumenDTO> todosReportes() {
+                return servicioReporte.obtenerTodosReportes();
+        }
+
         @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
         public ResponseEntity<ReporteRespuestaDTO> crearReporte(
 

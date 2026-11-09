@@ -46,6 +46,18 @@ public class ServicioReporte {
                                 .toList();
         }
 
+        public List<ReporteResumenDTO> obtenerTodosReportes() {
+                return reporteRepository.todosLosReportes()
+                                .stream()
+                                .map(reporte -> new ReporteResumenDTO(
+                                                reporte.getIdReporte(),
+                                                reporte.getTitulo(),
+                                                reporte.getDescripcion(),
+                                                reporte.getImagenUrl(),
+                                                reporte.getEstado()))
+                                .toList();
+        }
+
         public List<ReporteResumenDTO> obtenerRecientesPorColonia(
                         String correo) {
 
