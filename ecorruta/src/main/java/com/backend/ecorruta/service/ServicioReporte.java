@@ -42,7 +42,10 @@ public class ServicioReporte {
                                                 reporte.getTitulo(),
                                                 reporte.getDescripcion(),
                                                 reporte.getImagenUrl(),
-                                                reporte.getEstado()))
+                                                reporte.getEstado(),
+                                                reporte.getNombre(),
+                                                reporte.getColoniaNombre(),
+                                                reporte.getColoniaCodigoPostal()))
                                 .toList();
         }
 
@@ -54,7 +57,10 @@ public class ServicioReporte {
                                                 reporte.getTitulo(),
                                                 reporte.getDescripcion(),
                                                 reporte.getImagenUrl(),
-                                                reporte.getEstado()))
+                                                reporte.getEstado(),
+                                                reporte.getNombre(),
+                                                reporte.getColoniaNombre(),
+                                                reporte.getColoniaCodigoPostal()))
                                 .toList();
         }
 
@@ -69,7 +75,10 @@ public class ServicioReporte {
                                                 reporte.getTitulo(),
                                                 reporte.getDescripcion(),
                                                 reporte.getImagenUrl(),
-                                                reporte.getEstado()))
+                                                reporte.getEstado(),
+                                                reporte.getNombre(),
+                                                reporte.getColoniaNombre(),
+                                                reporte.getColoniaCodigoPostal()))
                                 .toList();
         }
 

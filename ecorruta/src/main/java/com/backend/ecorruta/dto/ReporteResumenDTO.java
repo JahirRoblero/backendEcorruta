@@ -6,5 +6,8 @@ public record ReporteResumenDTO(
                 String titulo,
                 String descripcion,
                 String imagenUrl,
-                String estado) {
+                String estado,
+                String nombre,
+                String coloniaNombre,
+                String coloniaCodigoPostals) {
 }

@@ -22,19 +22,31 @@ public interface ReporteRepository
         String getImagenUrl();
 
         String getEstado();
+
+        String getNombre();
+
+        String getColoniaNombre();
+
+        String getColoniaCodigoPostal();
     }
 
     @Query(value = """
-            SELECT
-                id_reporte AS "idReporte",
-                titulo AS "titulo",
-                descripcion AS "descripcion",
-                imagen_url AS "imagenUrl",
-                estado AS "estado"
-            FROM reporte
-            ORDER BY RANDOM()
-            LIMIT 5
-            """, nativeQuery = true)
+                        SELECT
+                            r.id_reporte AS "idReporte",
+                            r.titulo AS "titulo",
+                            r.descripcion AS "descripcion",
+                            r.imagen_url AS "imagenUrl",
+                            r.estado AS "estado",
+                            u.nombre AS "nombre",
+
+            r.colonia_nombre AS "coloniaNombre",
+            r.colonia_codigo_postal AS "coloniaCodigoPostal"
+
+                        FROM reporte r
+                        INNER JOIN usuario u
+                            ON r.correo_usuario = u.correo
+                        ORDER BY RANDOM()
+                        """, nativeQuery = true)
     List<ReporteVista> buscarAleatorios();
 
     @Query(value = """
@@ -43,12 +55,18 @@ public interface ReporteRepository
                 r.titulo AS "titulo",
                 r.descripcion AS "descripcion",
                 r.imagen_url AS "imagenUrl",
-                r.estado AS "estado"
+                r.estado AS "estado",
+                autor.nombre AS "nombre",
+                r.colonia_nombre AS "coloniaNombre",
+                r.colonia_codigo_postal AS "coloniaCodigoPostal"
+
             FROM reporte r
-            INNER JOIN usuario u
-                ON r.colonia_nombre = u.colonia_nombre
-                AND r.colonia_codigo_postal = u.colonia_codigo_postal
-            WHERE u.correo = :correo
+            INNER JOIN usuario autor
+                ON r.correo_usuario = autor.correo
+            INNER JOIN usuario lector
+                ON r.colonia_nombre = lector.colonia_nombre
+                AND r.colonia_codigo_postal = lector.colonia_codigo_postal
+            WHERE lector.correo = :correo
             ORDER BY r.fecha_reporte DESC, r.id_reporte DESC
             LIMIT 5
             """, nativeQuery = true)
@@ -57,12 +75,19 @@ public interface ReporteRepository
 
     @Query(value = """
             SELECT
-            r.id_reporte AS "idReporte",
-            r.titulo AS "titulo",
-            r.descripcion AS "descripcion",
-            r.imagen_url AS "imagenUrl",
-            r.estado AS "estado"
-            FROM reporte r;
+                r.id_reporte AS "idReporte",
+                r.titulo AS "titulo",
+                r.descripcion AS "descripcion",
+                r.imagen_url AS "imagenUrl",
+                r.estado AS "estado",
+                u.nombre AS "nombre",
+                r.colonia_nombre AS "coloniaNombre",
+                r.colonia_codigo_postal AS "coloniaCodigoPostal"
+            FROM reporte r
+            INNER JOIN usuario u
+                ON r.correo_usuario = u.correo
+            ORDER BY r.fecha_reporte DESC, r.id_reporte DESC
             """, nativeQuery = true)
     List<ReporteVista> todosLosReportes();
+
 }

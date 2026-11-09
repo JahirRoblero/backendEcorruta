@@ -42,6 +42,9 @@ public class Ruta {
         @Column(name = "geometria", columnDefinition = "TEXT")
         private String geometria;
 
+        @Column(name = "imagen_url", columnDefinition = "TEXT")
+        private String imagenUrl;
+
         @ManyToMany(fetch = FetchType.LAZY)
         @JoinTable(name = "ruta_colonia", joinColumns = {
                         @JoinColumn(name = "ruta_nombre", referencedColumnName = "nombre")
