@@ -17,6 +17,7 @@ import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 
 @Service
@@ -159,4 +160,27 @@ public class ServicioStorageNeon {
                         .key("reportes/" + nombre)
                         .build());
     }
+
+    public byte[] obtenerImagenRuta(String nombre) {
+        try {
+            return s3Client.getObjectAsBytes(
+                    GetObjectRequest.builder()
+                            .bucket(bucket)
+                            .key("rutas/" + nombre)
+                            .build())
+                    .asByteArray();
+
+        } catch (NoSuchKeyException error) {
+            throw new ResponseStatusException(
+                    HttpStatus.NOT_FOUND,
+                    "La imagen de la ruta no existe");
+
+        } catch (SdkException error) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_GATEWAY,
+                    "No se pudo recuperar la imagen de Neon",
+                    error);
+        }
+    }
+
 }

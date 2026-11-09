@@ -3,6 +3,7 @@ package com.backend.ecorruta.repository;
 
 import com.backend.ecorruta.model.Ruta;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -40,5 +41,27 @@ public interface RutaRepository
       LIMIT 1
       """, nativeQuery = true)
   Optional<Ruta> buscarRutaAleatoria();
+
+  @Query(value = """
+      SELECT
+          r.nombre AS "nombre",
+          r.descripcion AS "descripcion",
+          r.imagen_url AS "imagenUrl",
+          r.geometria AS "geometria"
+      FROM ruta r
+      WHERE r.activo = TRUE
+      ORDER BY r.nombre ASC
+      """, nativeQuery = true)
+  List<RutaCatalogoVista> buscarCatalogoRutas();
+
+  interface RutaCatalogoVista {
+    String getNombre();
+
+    String getDescripcion();
+
+    String getImagenUrl();
+
+    String getGeometria();
+  }
 
 }

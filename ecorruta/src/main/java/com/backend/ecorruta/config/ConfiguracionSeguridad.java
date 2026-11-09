@@ -61,7 +61,8 @@ public class ConfiguracionSeguridad {
 
                                                 .requestMatchers(
                                                                 HttpMethod.GET,
-                                                                "/api/reportes/imagenes/**")
+                                                                "/api/reportes/imagenes/**",
+                                                                "/api/rutas/imagenes/**")
                                                 .permitAll()
 
                                                 .requestMatchers("/api/admin/**")
