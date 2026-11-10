@@ -15,7 +15,13 @@ public class AutenticacionDTO {
 
                         @NotBlank(message = "El correo es obligatorio") @Email(message = "El correo no es válido") @Size(max = 254) String correo,
 
-                        @NotBlank(message = "La contraseña es obligatoria") @Size(min = 8, message = "La contraseña debe tener mínimo 8 caracteres") String contrasena
+                        @NotBlank(message = "El código postal es obligatorio") @Pattern(regexp = "\\d{5}", message = "El código postal debe tener 5 dígitos") String codigoPostal,
+
+                        @NotBlank(message = "La colonia es obligatoria") @Size(max = 100) String coloniaNombre,
+
+                        @NotBlank(message = "La contraseña es obligatoria") @Size(min = 8, max = 72, message = "La contraseña debe tener entre 8 y 72 caracteres") String contrasena,
+
+                        @NotBlank(message = "Debes confirmar la contraseña") String confirmarContrasena
 
         ) {
         }
