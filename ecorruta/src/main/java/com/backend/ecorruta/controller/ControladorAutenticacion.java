@@ -9,7 +9,11 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
+
 import com.backend.ecorruta.dto.AutenticacionDTO;
+import com.backend.ecorruta.model.Usuario;
+import com.backend.ecorruta.repository.UsuarioRepository;
 import com.backend.ecorruta.service.ServicioAutenticacion;
 import com.backend.ecorruta.service.ServicioVerificacionCorreo;
 import jakarta.validation.Valid;
@@ -22,6 +26,7 @@ public class ControladorAutenticacion {
 
         private final ServicioAutenticacion servicioAutenticacion;
         private final ServicioVerificacionCorreo servicioVerificacionCorreo;
+        private final UsuarioRepository usuarioRepository;
 
         @PostMapping("/registro/enviar-codigo")
         public ResponseEntity<Map<String, String>> enviarCodigo(
@@ -45,8 +50,18 @@ public class ControladorAutenticacion {
 
         @GetMapping("/privado")
         public ResponseEntity<?> privado(Authentication autenticacion) {
-                return ResponseEntity.ok(Map.of(
-                                "mensaje", "JWT funcionando correctamente",
-                                "usuario", autenticacion.getName()));
+
+                Usuario usuario = usuarioRepository
+                                .findByCorreoIgnoreCase(autenticacion.getName())
+                                .orElseThrow(() -> new ResponseStatusException(
+                                                HttpStatus.NOT_FOUND,
+                                                "Usuario no encontrado"));
+
+                return ResponseEntity.ok(
+                                Map.of(
+                                                "mensaje", "JWT funcionando correctamente",
+                                                "usuario", usuario.getCorreo(),
+                                                "nombre", usuario.getNombre()));
         }
+
 }
