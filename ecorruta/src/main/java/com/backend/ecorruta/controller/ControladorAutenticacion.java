@@ -61,7 +61,12 @@ public class ControladorAutenticacion {
                                 Map.of(
                                                 "mensaje", "JWT funcionando correctamente",
                                                 "usuario", usuario.getCorreo(),
-                                                "nombre", usuario.getNombre()));
+                                                "nombre", usuario.getNombre(),
+                                                "apellidoPaterno", usuario.getApellidoPaterno(),
+                                                "apellidoMaterno", usuario.getApellidoMaterno(),
+                                                "colonia", usuario.getColonia().getNombreColonia(),
+                                                "codigoPostal", usuario.getColonia().getCodigoPostal(),
+                                                "fechaRegistro", usuario.getFechaRegistro()));
         }
 
 }
