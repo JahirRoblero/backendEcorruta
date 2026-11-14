@@ -9,5 +9,5 @@ public record ReporteResumenDTO(
                 String estado,
                 String nombre,
                 String coloniaNombre,
-                String coloniaCodigoPostals) {
+                String coloniaCodigoPostal) {
 }
