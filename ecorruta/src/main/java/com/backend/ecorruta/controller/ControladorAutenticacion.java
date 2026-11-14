@@ -1,5 +1,6 @@
 package com.backend.ecorruta.controller;
 
+import java.util.LinkedHashMap;
 import java.util.Map;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.backend.ecorruta.dto.AutenticacionDTO;
+import com.backend.ecorruta.model.Colonia;
 import com.backend.ecorruta.model.Usuario;
 import com.backend.ecorruta.repository.UsuarioRepository;
 import com.backend.ecorruta.service.ServicioAutenticacion;
@@ -57,16 +59,21 @@ public class ControladorAutenticacion {
                                                 HttpStatus.NOT_FOUND,
                                                 "Usuario no encontrado"));
 
-                return ResponseEntity.ok(
-                                Map.of(
-                                                "mensaje", "JWT funcionando correctamente",
-                                                "usuario", usuario.getCorreo(),
-                                                "nombre", usuario.getNombre(),
-                                                "apellidoPaterno", usuario.getApellidoPaterno(),
-                                                "apellidoMaterno", usuario.getApellidoMaterno(),
-                                                "colonia", usuario.getColonia().getNombreColonia(),
-                                                "codigoPostal", usuario.getColonia().getCodigoPostal(),
-                                                "fechaRegistro", usuario.getFechaRegistro()));
+                // Map.of no acepta valores null y los operadores/administradores
+                // pueden no tener colonia ni apellido materno
+                Colonia colonia = usuario.getColonia();
+
+                Map<String, Object> datos = new LinkedHashMap<>();
+                datos.put("mensaje", "JWT funcionando correctamente");
+                datos.put("usuario", usuario.getCorreo());
+                datos.put("nombre", usuario.getNombre());
+                datos.put("apellidoPaterno", usuario.getApellidoPaterno());
+                datos.put("apellidoMaterno", usuario.getApellidoMaterno());
+                datos.put("colonia", colonia != null ? colonia.getNombreColonia() : null);
+                datos.put("codigoPostal", colonia != null ? colonia.getCodigoPostal() : null);
+                datos.put("fechaRegistro", usuario.getFechaRegistro());
+
+                return ResponseEntity.ok(datos);
         }
 
 }
