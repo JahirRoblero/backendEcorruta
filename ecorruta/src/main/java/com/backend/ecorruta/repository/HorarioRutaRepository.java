@@ -1,4 +1,3 @@
-
 package com.backend.ecorruta.repository;
 
 import com.backend.ecorruta.model.HorarioRuta;
@@ -8,4 +7,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface HorarioRutaRepository
         extends JpaRepository<HorarioRuta, HorarioRutaId> {
+
+    boolean existsByRutaNombre(String nombre);
 }
