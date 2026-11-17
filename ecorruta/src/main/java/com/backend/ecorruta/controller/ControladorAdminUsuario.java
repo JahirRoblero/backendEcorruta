@@ -7,9 +7,11 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import com.backend.ecorruta.dto.SolicitudCambioRolDTO;
 import com.backend.ecorruta.dto.UsuarioAdminDTO;
 import com.backend.ecorruta.service.ServicioAdminUsuario;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -41,6 +43,16 @@ public class ControladorAdminUsuario {
             @PathVariable("correo") String correo,
             Authentication authentication) {
         servicioAdminUsuario.cambiarEstado(correo, false, authentication.getName());
+        return ResponseEntity.noContent().build();
+    }
+
+    // Día 16
+    @PatchMapping("/{correo}/rol")
+    public ResponseEntity<Void> cambiarRol(
+            @PathVariable("correo") String correo,
+            @Valid @RequestBody SolicitudCambioRolDTO solicitud,
+            Authentication authentication) {
+        servicioAdminUsuario.cambiarRol(correo, solicitud.rol(), authentication.getName());
         return ResponseEntity.noContent().build();
     }
 }
