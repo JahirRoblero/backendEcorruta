@@ -75,4 +75,13 @@ public interface RutaRepository
       """)
   List<RutaAdminDTO> buscarTodasParaAdmin();
 
+    @Query("""
+      SELECT new com.backend.ecorruta.dto.RutaAdminDTO(
+          r.nombre, r.descripcion, r.distanciaKm, r.activo,
+          r.fechaCreacion, SIZE(r.colonias))
+      FROM Ruta r
+      WHERE r.nombre = :nombre
+      """)
+  Optional<RutaAdminDTO> buscarUnaParaAdmin(@Param("nombre") String nombre);
+
 }
