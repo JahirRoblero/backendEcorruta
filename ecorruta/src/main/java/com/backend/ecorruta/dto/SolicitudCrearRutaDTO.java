@@ -7,12 +7,14 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Digits;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.PositiveOrZero;
 import jakarta.validation.constraints.Size;
 
 public record SolicitudCrearRutaDTO(
         @NotBlank(message = "El nombre de la ruta es obligatorio")
         @Size(max = 60, message = "El nombre no puede superar los 60 caracteres")
+        @Pattern(regexp = "[^/\\\\]+", message = "El nombre no puede contener / ni \\")
         String nombre,
         String descripcion,
         @PositiveOrZero(message = "La distancia no puede ser negativa")
