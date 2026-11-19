@@ -14,6 +14,7 @@ import com.backend.ecorruta.dto.ColoniaAdminDTO;
 import com.backend.ecorruta.dto.ColoniaRefDTO;
 import com.backend.ecorruta.dto.RutaAdminDTO;
 import com.backend.ecorruta.dto.SolicitudCrearRutaDTO;
+import com.backend.ecorruta.dto.SolicitudEditarRutaDTO;
 import com.backend.ecorruta.model.Colonia;
 import com.backend.ecorruta.model.Ruta;
 import com.backend.ecorruta.repository.ColoniaRepository;
@@ -67,9 +68,28 @@ public class ServicioAdminRuta {
             throw nombreRepetido();
         }
 
-        return rutaRepository.buscarUnaParaAdmin(nombre)
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.INTERNAL_SERVER_ERROR, "No se pudo leer la ruta creada"));
+        return leer(nombre);
+    }
+
+    @Transactional
+    public RutaAdminDTO editar(String nombre, SolicitudEditarRutaDTO solicitud) {
+        Ruta ruta = buscar(nombre);
+
+        ruta.setDescripcion(limpiar(solicitud.descripcion()));
+        ruta.setDistanciaKm(solicitud.distanciaKm());
+
+        String geometria = limpiar(solicitud.geometria());
+        if (geometria != null) {
+            ruta.setGeometria(geometria);
+        }
+
+        Set<Colonia> nuevas = resolverColonias(solicitud.colonias());
+        ruta.getColonias().clear();
+        ruta.getColonias().addAll(nuevas);
+
+        rutaRepository.saveAndFlush(ruta);
+
+        return leer(nombre);
     }
 
     @Transactional
@@ -94,6 +114,12 @@ public class ServicioAdminRuta {
         } catch (DataIntegrityViolationException e) {
             throw conflicto();
         }
+    }
+
+    private RutaAdminDTO leer(String nombre) {
+        return rutaRepository.buscarUnaParaAdmin(nombre)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.INTERNAL_SERVER_ERROR, "No se pudo leer la ruta"));
     }
 
     private Set<Colonia> resolverColonias(List<ColoniaRefDTO> referencias) {

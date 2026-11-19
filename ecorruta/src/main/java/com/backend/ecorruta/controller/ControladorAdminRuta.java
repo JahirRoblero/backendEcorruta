@@ -9,12 +9,14 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.backend.ecorruta.dto.RutaAdminDTO;
 import com.backend.ecorruta.dto.SolicitudCrearRutaDTO;
+import com.backend.ecorruta.dto.SolicitudEditarRutaDTO;
 import com.backend.ecorruta.service.ServicioAdminRuta;
 
 import jakarta.validation.Valid;
@@ -37,6 +39,13 @@ public class ControladorAdminRuta {
             @Valid @RequestBody SolicitudCrearRutaDTO solicitud) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(servicioAdminRuta.crear(solicitud));
+    }
+
+    @PutMapping("/{nombre}")
+    public RutaAdminDTO editar(
+            @PathVariable String nombre,
+            @Valid @RequestBody SolicitudEditarRutaDTO solicitud) {
+        return servicioAdminRuta.editar(nombre, solicitud);
     }
 
     @PatchMapping("/{nombre}/activar")
