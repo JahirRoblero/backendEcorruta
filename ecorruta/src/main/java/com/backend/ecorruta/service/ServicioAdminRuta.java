@@ -21,6 +21,8 @@ import com.backend.ecorruta.repository.ColoniaRepository;
 import com.backend.ecorruta.repository.EjecucionRutaRepository;
 import com.backend.ecorruta.repository.HorarioRutaRepository;
 import com.backend.ecorruta.repository.RutaRepository;
+import java.util.Comparator;
+import com.backend.ecorruta.dto.RutaDetalleAdminDTO;
 
 import lombok.RequiredArgsConstructor;
 
@@ -44,6 +46,24 @@ public class ServicioAdminRuta {
                 .stream()
                 .map(c -> new ColoniaAdminDTO(c.getNombreColonia(), c.getCodigoPostal()))
                 .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public RutaDetalleAdminDTO detalle(String nombre) {
+        Ruta ruta = buscar(nombre);
+
+        List<ColoniaAdminDTO> colonias = ruta.getColonias().stream()
+                .map(c -> new ColoniaAdminDTO(c.getNombreColonia(), c.getCodigoPostal()))
+                .sorted(Comparator.comparing(ColoniaAdminDTO::nombre)
+                        .thenComparing(ColoniaAdminDTO::codigoPostal))
+                .toList();
+
+        return new RutaDetalleAdminDTO(
+                ruta.getNombre(),
+                ruta.getDescripcion(),
+                ruta.getDistanciaKm(),
+                ruta.isActivo(),
+                colonias);
     }
 
     @Transactional

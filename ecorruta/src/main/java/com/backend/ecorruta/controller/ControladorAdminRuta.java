@@ -18,6 +18,7 @@ import com.backend.ecorruta.dto.RutaAdminDTO;
 import com.backend.ecorruta.dto.SolicitudCrearRutaDTO;
 import com.backend.ecorruta.dto.SolicitudEditarRutaDTO;
 import com.backend.ecorruta.service.ServicioAdminRuta;
+import com.backend.ecorruta.dto.RutaDetalleAdminDTO;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -33,7 +34,10 @@ public class ControladorAdminRuta {
     public List<RutaAdminDTO> listar() {
         return servicioAdminRuta.listar();
     }
-
+    @GetMapping("/{nombre}")
+    public RutaDetalleAdminDTO detalle(@PathVariable String nombre) {
+        return servicioAdminRuta.detalle(nombre);
+    }
     @PostMapping
     public ResponseEntity<RutaAdminDTO> crear(
             @Valid @RequestBody SolicitudCrearRutaDTO solicitud) {
