@@ -17,8 +17,10 @@ import org.springframework.web.server.ResponseStatusException;
 
 import com.backend.ecorruta.dto.EjecucionOperadorDTO;
 import com.backend.ecorruta.dto.IncidenciaRespuestaDTO;
+import com.backend.ecorruta.dto.OpcionesInicioRecorridoDTO;
 import com.backend.ecorruta.dto.SolicitudCrearIncidenciaDTO;
 import com.backend.ecorruta.dto.SolicitudFinalizarRecorridoDTO;
+import com.backend.ecorruta.dto.SolicitudIniciarRutaDTO;
 import com.backend.ecorruta.dto.SolicitudUbicacionDTO;
 import com.backend.ecorruta.dto.UbicacionRespuestaDTO;
 import com.backend.ecorruta.enumeraciones.EstadoEjecucion;
@@ -26,6 +28,7 @@ import com.backend.ecorruta.enumeraciones.EstadoIncidencia;
 import com.backend.ecorruta.enumeraciones.EstadoVehiculo;
 import com.backend.ecorruta.model.EjecucionRuta;
 import com.backend.ecorruta.model.Incidencia;
+import com.backend.ecorruta.model.Ruta;
 import com.backend.ecorruta.model.Usuario;
 import com.backend.ecorruta.model.Vehiculo;
 import com.backend.ecorruta.repository.IncidenciaRepository;
@@ -86,6 +89,114 @@ public class ServicioOperador {
         @Transactional(readOnly = true)
         public EjecucionOperadorDTO obtenerEjecucion(String correo, Integer folio) {
                 return aDTO(buscarEjecucionPropia(correo, folio));
+        }
+
+        // ------------------------------------------------------------
+        // Iniciar una ruta elegida por el operador (sin asignación previa)
+        // ------------------------------------------------------------
+
+        /** Rutas activas y unidades disponibles para iniciar un recorrido. */
+        @Transactional(readOnly = true)
+        public OpcionesInicioRecorridoDTO obtenerOpcionesInicio() {
+
+                List<OpcionesInicioRecorridoDTO.RutaOpcion> rutas = entityManager.createQuery("""
+                                select distinct r from Ruta r
+                                left join fetch r.colonias
+                                where r.activo = true
+                                order by r.nombre
+                                """, Ruta.class)
+                                .getResultList()
+                                .stream()
+                                .map(ruta -> new OpcionesInicioRecorridoDTO.RutaOpcion(
+                                                ruta.getNombre(),
+                                                ruta.getDescripcion(),
+                                                ruta.getColonias().stream()
+                                                                .map(colonia -> colonia.getNombreColonia())
+                                                                .sorted()
+                                                                .toList()))
+                                .toList();
+
+                List<OpcionesInicioRecorridoDTO.VehiculoOpcion> vehiculos = entityManager.createQuery("""
+                                select v from Vehiculo v
+                                where v.activo = true and v.estado = :disponible
+                                order by v.numeroEconomico
+                                """, Vehiculo.class)
+                                .setParameter("disponible", EstadoVehiculo.DISPONIBLE)
+                                .getResultList()
+                                .stream()
+                                .map(v -> new OpcionesInicioRecorridoDTO.VehiculoOpcion(
+                                                v.getPlaca(),
+                                                v.getNumeroEconomico(),
+                                                v.getMarca(),
+                                                v.getModelo()))
+                                .toList();
+
+                return new OpcionesInicioRecorridoDTO(rutas, vehiculos);
+        }
+
+        /**
+         * Crea la ejecución de hoy con la ruta y unidad elegidas por el operador
+         * y la deja EN_CURSO de inmediato, para que el ciudadano vea la unidad (HU-22).
+         */
+        @Transactional
+        public EjecucionOperadorDTO iniciarRutaElegida(String correo, SolicitudIniciarRutaDTO datos) {
+
+                validarSinRecorridoEnCurso(correo);
+
+                Ruta ruta = entityManager.find(Ruta.class, datos.rutaNombre().trim());
+
+                if (ruta == null || !ruta.isActivo()) {
+                        throw new ResponseStatusException(
+                                        HttpStatus.CONFLICT,
+                                        "La ruta no existe o está inactiva");
+                }
+
+                Vehiculo vehiculo = entityManager.find(Vehiculo.class, datos.placaVehiculo().trim());
+
+                if (vehiculo == null || !vehiculo.isActivo()
+                                || vehiculo.getEstado() != EstadoVehiculo.DISPONIBLE) {
+                        throw new ResponseStatusException(
+                                        HttpStatus.CONFLICT,
+                                        "La unidad no está disponible");
+                }
+
+                Usuario operador = usuarioRepository
+                                .findByCorreoIgnoreCase(correo)
+                                .orElseThrow(() -> new ResponseStatusException(
+                                                HttpStatus.NOT_FOUND,
+                                                "El usuario no existe"));
+
+                EjecucionRuta ejecucion = new EjecucionRuta();
+                ejecucion.setRuta(ruta);
+                ejecucion.setVehiculo(vehiculo);
+                ejecucion.setOperador(operador);
+                ejecucion.setFechaProgramada(LocalDate.now(ZONA_OAXACA));
+                ejecucion.setFechaInicio(OffsetDateTime.now(ZONA_OAXACA));
+                ejecucion.setEstado(EstadoEjecucion.EN_CURSO);
+
+                vehiculo.setEstado(EstadoVehiculo.EN_RUTA);
+
+                entityManager.persist(ejecucion);
+                entityManager.flush();
+
+                return aDTO(ejecucion);
+        }
+
+        private void validarSinRecorridoEnCurso(String correo) {
+                Long enCurso = entityManager.createQuery("""
+                                select count(e) from EjecucionRuta e
+                                where lower(e.operador.correo) = lower(:correo)
+                                and e.estado = :estado
+                                """, Long.class)
+                                .setParameter("correo", correo)
+                                .setParameter("estado", EstadoEjecucion.EN_CURSO)
+                                .getSingleResult();
+
+                if (enCurso > 0) {
+                        throw new ResponseStatusException(
+                                        HttpStatus.CONFLICT,
+                                        "Ya tienes un recorrido en curso");
+                }
         }
 
         // ------------------------------------------------------------

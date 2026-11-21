@@ -14,6 +14,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.backend.ecorruta.dto.EjecucionOperadorDTO;
 import com.backend.ecorruta.dto.IncidenciaRespuestaDTO;
+import com.backend.ecorruta.dto.OpcionesInicioRecorridoDTO;
+import com.backend.ecorruta.dto.SolicitudIniciarRutaDTO;
 import com.backend.ecorruta.dto.SolicitudCrearIncidenciaDTO;
 import com.backend.ecorruta.dto.SolicitudFinalizarRecorridoDTO;
 import com.backend.ecorruta.dto.SolicitudUbicacionDTO;
@@ -50,6 +52,23 @@ public class ControladorOperador {
                         Authentication authentication) {
 
                 return servicioOperador.obtenerEjecucion(authentication.getName(), folio);
+        }
+
+        /** Rutas activas y unidades disponibles para iniciar un recorrido. */
+        @GetMapping("/opciones-inicio")
+        public OpcionesInicioRecorridoDTO obtenerOpcionesInicio() {
+                return servicioOperador.obtenerOpcionesInicio();
+        }
+
+        /** El operador elige ruta y unidad; el recorrido se crea e inicia de inmediato. */
+        @PostMapping("/recorridos")
+        public ResponseEntity<EjecucionOperadorDTO> iniciarRutaElegida(
+                        @Valid @RequestBody SolicitudIniciarRutaDTO datos,
+                        Authentication authentication) {
+
+                return ResponseEntity
+                                .status(HttpStatus.CREATED)
+                                .body(servicioOperador.iniciarRutaElegida(authentication.getName(), datos));
         }
 
         @PostMapping("/ejecuciones/{folio}/iniciar")
