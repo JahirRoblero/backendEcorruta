@@ -55,6 +55,9 @@ public class EjecucionRuta {
     @Column(name = "estado", nullable = false, length = 20)
     private EstadoEjecucion estado = EstadoEjecucion.PENDIENTE;
 
+    @Column(name = "asignacion_id")
+    private Long asignacionId;
+
     @Column(name = "observaciones", columnDefinition = "TEXT")
     private String observaciones;
 
