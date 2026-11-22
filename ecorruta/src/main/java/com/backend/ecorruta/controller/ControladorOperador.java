@@ -13,12 +13,14 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.backend.ecorruta.dto.EjecucionOperadorDTO;
+import com.backend.ecorruta.dto.AsignacionOperadorDTO;
 import com.backend.ecorruta.dto.IncidenciaRespuestaDTO;
 import com.backend.ecorruta.dto.SolicitudCrearIncidenciaDTO;
 import com.backend.ecorruta.dto.SolicitudFinalizarRecorridoDTO;
 import com.backend.ecorruta.dto.SolicitudUbicacionDTO;
 import com.backend.ecorruta.dto.UbicacionRespuestaDTO;
 import com.backend.ecorruta.service.ServicioOperador;
+import com.backend.ecorruta.service.ServicioAsignaciones;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -34,6 +36,7 @@ import lombok.RequiredArgsConstructor;
 public class ControladorOperador {
 
         private final ServicioOperador servicioOperador;
+        private final ServicioAsignaciones servicioAsignaciones;
 
         /** Ejecuciones asignadas al operador en una fecha (por defecto, hoy). */
         @GetMapping("/ejecuciones")
@@ -50,6 +53,20 @@ public class ControladorOperador {
                         Authentication authentication) {
 
                 return servicioOperador.obtenerEjecucion(authentication.getName(), folio);
+        }
+
+        /** Asignación fija del conductor, válida en los días configurados por administración. */
+        @GetMapping("/asignaciones")
+        public List<AsignacionOperadorDTO> misAsignaciones(Authentication authentication) {
+                return servicioAsignaciones.listarDelOperador(authentication.getName());
+        }
+
+        /** Crea el recorrido de HOY y lo inicia, sin intervención diaria del administrador. */
+        @PostMapping("/asignaciones/{id}/iniciar")
+        public ResponseEntity<EjecucionOperadorDTO> iniciarAsignacion(
+                        @PathVariable("id") Long id, Authentication authentication) {
+                return ResponseEntity.status(HttpStatus.CREATED)
+                        .body(servicioOperador.iniciarAsignacion(authentication.getName(), id));
         }
 
         @PostMapping("/ejecuciones/{folio}/iniciar")
