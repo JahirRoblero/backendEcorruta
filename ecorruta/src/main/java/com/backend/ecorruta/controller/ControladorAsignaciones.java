@@ -10,9 +10,8 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import com.backend.ecorruta.dto.EjecucionOperadorDTO;
-import com.backend.ecorruta.dto.AsignacionOperadorDTO;
 import com.backend.ecorruta.dto.OpcionesAsignacionDTO;
-import com.backend.ecorruta.dto.SolicitudAsignacionRecurrenteDTO;
+import com.backend.ecorruta.dto.SolicitudAsignacionDTO;
 import com.backend.ecorruta.service.ServicioAsignaciones;
 
 import jakarta.validation.Valid;
@@ -38,20 +37,9 @@ public class ControladorAsignaciones {
         return servicio.ejecuciones(fecha);
     }
 
-    @GetMapping("/asignaciones")
-    public List<AsignacionOperadorDTO> listar() {
-        return servicio.listar();
-    }
-
-    @PostMapping("/asignaciones")
-    public ResponseEntity<AsignacionOperadorDTO> asignar(
-            @Valid @RequestBody SolicitudAsignacionRecurrenteDTO solicitud) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(servicio.asignarRecurrente(solicitud));
-    }
-
-    @PatchMapping("/asignaciones/{id}/desactivar")
-    public ResponseEntity<Void> desactivar(@PathVariable("id") Long id) {
-        servicio.desactivar(id);
-        return ResponseEntity.noContent().build();
+    @PostMapping("/ejecuciones")
+    public ResponseEntity<EjecucionOperadorDTO> asignar(
+            @Valid @RequestBody SolicitudAsignacionDTO solicitud) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(servicio.asignar(solicitud));
     }
 }
