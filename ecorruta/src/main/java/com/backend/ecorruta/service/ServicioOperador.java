@@ -17,10 +17,8 @@ import org.springframework.web.server.ResponseStatusException;
 
 import com.backend.ecorruta.dto.EjecucionOperadorDTO;
 import com.backend.ecorruta.dto.IncidenciaRespuestaDTO;
-import com.backend.ecorruta.dto.OpcionesInicioRecorridoDTO;
 import com.backend.ecorruta.dto.SolicitudCrearIncidenciaDTO;
 import com.backend.ecorruta.dto.SolicitudFinalizarRecorridoDTO;
-import com.backend.ecorruta.dto.SolicitudIniciarRutaDTO;
 import com.backend.ecorruta.dto.SolicitudUbicacionDTO;
 import com.backend.ecorruta.dto.UbicacionRespuestaDTO;
 import com.backend.ecorruta.enumeraciones.EstadoEjecucion;
@@ -28,7 +26,6 @@ import com.backend.ecorruta.enumeraciones.EstadoIncidencia;
 import com.backend.ecorruta.enumeraciones.EstadoVehiculo;
 import com.backend.ecorruta.model.EjecucionRuta;
 import com.backend.ecorruta.model.Incidencia;
-import com.backend.ecorruta.model.Ruta;
 import com.backend.ecorruta.model.Usuario;
 import com.backend.ecorruta.model.Vehiculo;
 import com.backend.ecorruta.repository.IncidenciaRepository;
@@ -50,9 +47,6 @@ import lombok.RequiredArgsConstructor;
 public class ServicioOperador {
 
         private static final ZoneId ZONA_OAXACA = ZoneId.of("America/Mexico_City");
-
-        /** Distancia mínima (en metros) para guardar una nueva muestra de ubicación (RNF10). */
-        private static final double DISTANCIA_MINIMA_METROS = 10.0;
 
         private static final String PREFIJO_INCOMPLETO = "[Recorrido incompleto] ";
 
@@ -89,114 +83,6 @@ public class ServicioOperador {
         @Transactional(readOnly = true)
         public EjecucionOperadorDTO obtenerEjecucion(String correo, Integer folio) {
                 return aDTO(buscarEjecucionPropia(correo, folio));
-        }
-
-        // ------------------------------------------------------------
-        // Iniciar una ruta elegida por el operador (sin asignación previa)
-        // ------------------------------------------------------------
-
-        /** Rutas activas y unidades disponibles para iniciar un recorrido. */
-        @Transactional(readOnly = true)
-        public OpcionesInicioRecorridoDTO obtenerOpcionesInicio() {
-
-                List<OpcionesInicioRecorridoDTO.RutaOpcion> rutas = entityManager.createQuery("""
-                                select distinct r from Ruta r
-                                left join fetch r.colonias
-                                where r.activo = true
-                                order by r.nombre
-                                """, Ruta.class)
-                                .getResultList()
-                                .stream()
-                                .map(ruta -> new OpcionesInicioRecorridoDTO.RutaOpcion(
-                                                ruta.getNombre(),
-                                                ruta.getDescripcion(),
-                                                ruta.getColonias().stream()
-                                                                .map(colonia -> colonia.getNombreColonia())
-                                                                .sorted()
-                                                                .toList()))
-                                .toList();
-
-                List<OpcionesInicioRecorridoDTO.VehiculoOpcion> vehiculos = entityManager.createQuery("""
-                                select v from Vehiculo v
-                                where v.activo = true and v.estado = :disponible
-                                order by v.numeroEconomico
-                                """, Vehiculo.class)
-                                .setParameter("disponible", EstadoVehiculo.DISPONIBLE)
-                                .getResultList()
-                                .stream()
-                                .map(v -> new OpcionesInicioRecorridoDTO.VehiculoOpcion(
-                                                v.getPlaca(),
-                                                v.getNumeroEconomico(),
-                                                v.getMarca(),
-                                                v.getModelo()))
-                                .toList();
-
-                return new OpcionesInicioRecorridoDTO(rutas, vehiculos);
-        }
-
-        /**
-         * Crea la ejecución de hoy con la ruta y unidad elegidas por el operador
-         * y la deja EN_CURSO de inmediato, para que el ciudadano vea la unidad (HU-22).
-         */
-        @Transactional
-        public EjecucionOperadorDTO iniciarRutaElegida(String correo, SolicitudIniciarRutaDTO datos) {
-
-                validarSinRecorridoEnCurso(correo);
-
-                Ruta ruta = entityManager.find(Ruta.class, datos.rutaNombre().trim());
-
-                if (ruta == null || !ruta.isActivo()) {
-                        throw new ResponseStatusException(
-                                        HttpStatus.CONFLICT,
-                                        "La ruta no existe o está inactiva");
-                }
-
-                Vehiculo vehiculo = entityManager.find(Vehiculo.class, datos.placaVehiculo().trim());
-
-                if (vehiculo == null || !vehiculo.isActivo()
-                                || vehiculo.getEstado() != EstadoVehiculo.DISPONIBLE) {
-                        throw new ResponseStatusException(
-                                        HttpStatus.CONFLICT,
-                                        "La unidad no está disponible");
-                }
-
-                Usuario operador = usuarioRepository
-                                .findByCorreoIgnoreCase(correo)
-                                .orElseThrow(() -> new ResponseStatusException(
-                                                HttpStatus.NOT_FOUND,
-                                                "El usuario no existe"));
-
-                EjecucionRuta ejecucion = new EjecucionRuta();
-                ejecucion.setRuta(ruta);
-                ejecucion.setVehiculo(vehiculo);
-                ejecucion.setOperador(operador);
-                ejecucion.setFechaProgramada(LocalDate.now(ZONA_OAXACA));
-                ejecucion.setFechaInicio(OffsetDateTime.now(ZONA_OAXACA));
-                ejecucion.setEstado(EstadoEjecucion.EN_CURSO);
-
-                vehiculo.setEstado(EstadoVehiculo.EN_RUTA);
-
-                entityManager.persist(ejecucion);
-                entityManager.flush();
-
-                return aDTO(ejecucion);
-        }
-
-        private void validarSinRecorridoEnCurso(String correo) {
-                Long enCurso = entityManager.createQuery("""
-                                select count(e) from EjecucionRuta e
-                                where lower(e.operador.correo) = lower(:correo)
-                                and e.estado = :estado
-                                """, Long.class)
-                                .setParameter("correo", correo)
-                                .setParameter("estado", EstadoEjecucion.EN_CURSO)
-                                .getSingleResult();
-
-                if (enCurso > 0) {
-                        throw new ResponseStatusException(
-                                        HttpStatus.CONFLICT,
-                                        "Ya tienes un recorrido en curso");
-                }
         }
 
         // ------------------------------------------------------------
@@ -242,6 +128,7 @@ public class ServicioOperador {
                 }
 
                 Vehiculo vehiculo = ejecucion.getVehiculo();
+                entityManager.lock(vehiculo, jakarta.persistence.LockModeType.PESSIMISTIC_WRITE);
 
                 if (!vehiculo.isActivo() || vehiculo.getEstado() != EstadoVehiculo.DISPONIBLE) {
                         throw new ResponseStatusException(
@@ -324,29 +211,6 @@ public class ServicioOperador {
 
                 BigDecimal latitud = datos.latitud().setScale(6, java.math.RoundingMode.HALF_UP);
                 BigDecimal longitud = datos.longitud().setScale(6, java.math.RoundingMode.HALF_UP);
-
-                // RNF10: no guardar posiciones repetidas o sin cambio relevante
-                List<?> ultima = entityManager.createNativeQuery("""
-                                select latitud, longitud from ubicacion_unidad
-                                where folio_ejecucion = :folio
-                                order by numero_muestra desc
-                                limit 1
-                                """)
-                                .setParameter("folio", folio)
-                                .getResultList();
-
-                if (!ultima.isEmpty()) {
-                        Object[] fila = (Object[]) ultima.get(0);
-                        double distancia = distanciaMetros(
-                                        ((Number) fila[0]).doubleValue(),
-                                        ((Number) fila[1]).doubleValue(),
-                                        latitud.doubleValue(),
-                                        longitud.doubleValue());
-
-                        if (distancia < DISTANCIA_MINIMA_METROS) {
-                                return new UbicacionRespuestaDTO(false, null, latitud, longitud, null);
-                        }
-                }
 
                 // numero_muestra es GENERATED ALWAYS AS IDENTITY dentro de una llave compuesta,
                 // por eso se inserta con SQL nativo en lugar de repository.save().
@@ -540,14 +404,4 @@ public class ServicioOperador {
                 throw new IllegalStateException("Tipo de fecha no soportado: " + valor.getClass());
         }
 
-        /** Distancia aproximada entre dos coordenadas (fórmula de Haversine). */
-        private double distanciaMetros(double lat1, double lon1, double lat2, double lon2) {
-                double radioTierra = 6_371_000;
-                double dLat = Math.toRadians(lat2 - lat1);
-                double dLon = Math.toRadians(lon2 - lon1);
-                double a = Math.sin(dLat / 2) * Math.sin(dLat / 2)
-                                + Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2))
-                                                * Math.sin(dLon / 2) * Math.sin(dLon / 2);
-                return 2 * radioTierra * Math.asin(Math.sqrt(a));
-        }
 }
