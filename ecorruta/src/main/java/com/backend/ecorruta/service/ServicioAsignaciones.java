@@ -113,7 +113,7 @@ public class ServicioAsignaciones {
                        EXISTS (
                            SELECT 1 FROM ejecucion_ruta e
                            WHERE e.asignacion_id = a.id_asignacion
-                             AND e.fecha_programada = (NOW() AT TIME ZONE 'America/Mexico_City')::date
+                             AND e.fecha_programada = CAST((NOW() AT TIME ZONE 'America/Mexico_City') AS DATE)
                        ) AS iniciada_hoy
                 FROM asignacion_operador a
                 JOIN usuario u ON u.correo = a.correo_operador
