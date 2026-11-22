@@ -12,5 +12,6 @@ public record AsignacionOperadorDTO(
         String placaVehiculo,
         String numeroEconomico,
         List<Integer> diasSemana,
-        boolean activa) {
+        boolean activa,
+        boolean iniciadaHoy) {
 }
