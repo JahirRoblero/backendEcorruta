@@ -109,7 +109,12 @@ public class ServicioAsignaciones {
                 SELECT a.id_asignacion, a.correo_operador,
                        u.nombre || ' ' || u.apellido_paterno,
                        a.ruta_nombre, r.descripcion,
-                       a.placa_vehiculo, v.numero_economico, a.dias_semana_mask, a.activo
+                       a.placa_vehiculo, v.numero_economico, a.dias_semana_mask, a.activo,
+                       EXISTS (
+                           SELECT 1 FROM ejecucion_ruta e
+                           WHERE e.asignacion_id = a.id_asignacion
+                             AND e.fecha_programada = (NOW() AT TIME ZONE 'America/Mexico_City')::date
+                       ) AS iniciada_hoy
                 FROM asignacion_operador a
                 JOIN usuario u ON u.correo = a.correo_operador
                 JOIN ruta r ON r.nombre = a.ruta_nombre
@@ -126,7 +131,7 @@ public class ServicioAsignaciones {
                 (String) fila[3], (String) fila[4],
                 (String) fila[5], (String) fila[6],
                 diasDeMascara(((Number) fila[7]).intValue()),
-                (Boolean) fila[8])).toList();
+                (Boolean) fila[8], (Boolean) fila[9])).toList();
     }
 
     /**
@@ -197,7 +202,7 @@ public class ServicioAsignaciones {
         return new AsignacionOperadorDTO(id.longValue(), operador.getCorreo(),
                 operador.getNombre() + " " + operador.getApellidoPaterno(),
                 ruta.getNombre(), ruta.getDescripcion(), vehiculo.getPlaca(),
-                vehiculo.getNumeroEconomico(), diasDeMascara(mascara), true);
+                vehiculo.getNumeroEconomico(), diasDeMascara(mascara), true, false);
     }
 
     @Transactional
