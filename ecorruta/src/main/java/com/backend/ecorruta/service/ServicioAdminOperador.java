@@ -71,8 +71,11 @@ public class ServicioAdminOperador {
                 .activo(true)
                 .build();
 
+        Usuario guardado;
         try {
-            usuarioRepository.saveAndFlush(usuario);
+            // Como el id (correo) ya viene asignado, Spring Data usa merge y
+            // devuelve OTRA instancia: esa es la que queda administrada.
+            guardado = usuarioRepository.saveAndFlush(usuario);
         } catch (DataIntegrityViolationException e) {
             // Por si dos altas con el mismo correo llegan al mismo tiempo.
             throw new ResponseStatusException(
@@ -80,8 +83,8 @@ public class ServicioAdminOperador {
         }
 
         // fecha_registro la pone la base de datos; se recarga para devolverla.
-        entityManager.refresh(usuario);
-        return aDTO(usuario);
+        entityManager.refresh(guardado);
+        return aDTO(guardado);
     }
 
     // Operadores = usuarios con rol CONDUCTOR. Reutiliza la consulta de Usuarios.
