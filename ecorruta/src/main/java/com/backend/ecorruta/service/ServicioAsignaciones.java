@@ -115,9 +115,10 @@ public class ServicioAsignaciones {
                 JOIN ruta r ON r.nombre = a.ruta_nombre
                 JOIN vehiculo v ON v.placa = a.placa_vehiculo
                 WHERE a.activo = TRUE
-                  AND (:correo IS NULL OR LOWER(a.correo_operador) = LOWER(:correo))
-                ORDER BY u.nombre, a.ruta_nombre
-                """).setParameter("correo", correo);
+                """ + (correo == null
+                        ? " ORDER BY u.nombre, a.ruta_nombre"
+                        : " AND LOWER(a.correo_operador) = LOWER(:correo) ORDER BY u.nombre, a.ruta_nombre"));
+        if (correo != null) consulta.setParameter("correo", correo);
         List<Object[]> filas = consulta.getResultList();
         return filas.stream().map(fila -> new AsignacionOperadorDTO(
                 ((Number) fila[0]).longValue(),
