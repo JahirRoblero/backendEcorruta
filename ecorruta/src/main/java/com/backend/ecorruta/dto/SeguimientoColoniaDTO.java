@@ -24,7 +24,17 @@ public record SeguimientoColoniaDTO(
                         BigDecimal longitud,
                         OffsetDateTime fechaHora,
                         Long minutosSinActualizar,
-                        boolean desactualizada) {
+                        boolean desactualizada,
+                        /** Puntos [longitud, latitud] por donde ya pasó la unidad, en orden. */
+                        List<double[]> recorrido,
+                        /** Incidencias abiertas del recorrido, sin detalles internos (HU-24 CA2). */
+                        List<Aviso> avisos) {
+        }
+
+        /** Aviso de retraso o interrupción: solo el tipo y la hora. */
+        public record Aviso(
+                        String tipo,
+                        OffsetDateTime fechaHora) {
         }
 
         /** Horario programado de una ruta de la colonia (1 = lunes ... 7 = domingo). */
