@@ -69,11 +69,12 @@ public class ServicioOperador {
                                 join fetch e.ruta
                                 join fetch e.vehiculo
                                 where lower(e.operador.correo) = lower(:correo)
-                                and e.fechaProgramada = :fecha
+                                and (e.fechaProgramada = :fecha or e.estado = :enCurso)
                                 order by e.folioEjecucion
                                 """, EjecucionRuta.class)
                                 .setParameter("correo", correo)
                                 .setParameter("fecha", dia)
+                                .setParameter("enCurso", EstadoEjecucion.EN_CURSO)
                                 .getResultList()
                                 .stream()
                                 .map(this::aDTO)
@@ -83,6 +84,97 @@ public class ServicioOperador {
         @Transactional(readOnly = true)
         public EjecucionOperadorDTO obtenerEjecucion(String correo, Integer folio) {
                 return aDTO(buscarEjecucionPropia(correo, folio));
+        }
+
+        /**
+         * Crea una ejecución nueva a partir de la asignación fija que el administrador
+         * configuró. Se llama una vez por día de trabajo, al tocar "Iniciar".
+         */
+        @Transactional
+        public EjecucionOperadorDTO iniciarAsignacion(String correo, Long idAsignacion) {
+                Usuario operador = usuarioRepository.findByCorreoIgnoreCase(correo)
+                        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                                "El conductor no existe"));
+                entityManager.lock(operador, jakarta.persistence.LockModeType.PESSIMISTIC_WRITE);
+
+                if (!operador.isActivo() || !"CONDUCTOR".equals(operador.getRol().getNombre())) {
+                        throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+                                "Solo un conductor activo puede iniciar recorridos");
+                }
+
+                List<?> filas = entityManager.createNativeQuery("""
+                        SELECT ruta_nombre, placa_vehiculo, dias_semana_mask
+                        FROM asignacion_operador
+                        WHERE id_asignacion = :id AND correo_operador = :correo AND activo = TRUE
+                        FOR UPDATE
+                        """)
+                        .setParameter("id", idAsignacion)
+                        .setParameter("correo", operador.getCorreo())
+                        .getResultList();
+
+                if (filas.isEmpty()) {
+                        throw new ResponseStatusException(HttpStatus.NOT_FOUND,
+                                "No tienes esa asignación activa");
+                }
+
+                Object[] fila = (Object[]) filas.get(0);
+                LocalDate hoy = LocalDate.now(ZONA_OAXACA);
+                int bitDia = 1 << (hoy.getDayOfWeek().getValue() - 1);
+                int mascaraDias = ((Number) fila[2]).intValue();
+                if ((mascaraDias & bitDia) == 0) {
+                        throw new ResponseStatusException(HttpStatus.CONFLICT,
+                                "Esta ruta no está asignada para el día de hoy");
+                }
+
+                Number ejecutadasHoy = (Number) entityManager.createNativeQuery("""
+                        SELECT count(*) FROM ejecucion_ruta
+                        WHERE asignacion_id = :id AND fecha_programada = :fecha
+                        """)
+                        .setParameter("id", idAsignacion)
+                        .setParameter("fecha", hoy)
+                        .getSingleResult();
+                if (ejecutadasHoy.longValue() != 0) {
+                        throw new ResponseStatusException(HttpStatus.CONFLICT,
+                                "El recorrido de esta asignación ya se inició hoy");
+                }
+
+                Number recorridosActivos = (Number) entityManager.createNativeQuery("""
+                        SELECT count(*) FROM ejecucion_ruta
+                        WHERE correo_operador = :correo AND estado = 'EN_CURSO'
+                        """).setParameter("correo", operador.getCorreo()).getSingleResult();
+                if (recorridosActivos.longValue() > 0) {
+                        throw new ResponseStatusException(HttpStatus.CONFLICT,
+                                "Ya tienes otro recorrido en curso");
+                }
+
+                com.backend.ecorruta.model.Ruta ruta = entityManager.find(
+                        com.backend.ecorruta.model.Ruta.class, (String) fila[0]);
+                if (ruta == null || !ruta.isActivo()) {
+                        throw new ResponseStatusException(HttpStatus.CONFLICT,
+                                "La ruta asignada está inactiva");
+                }
+
+                Vehiculo vehiculo = entityManager.find(Vehiculo.class, (String) fila[1],
+                        jakarta.persistence.LockModeType.PESSIMISTIC_WRITE);
+                if (vehiculo == null || !vehiculo.isActivo() ||
+                        vehiculo.getEstado() != EstadoVehiculo.DISPONIBLE) {
+                        throw new ResponseStatusException(HttpStatus.CONFLICT,
+                                "La unidad asignada no está disponible");
+                }
+
+                EjecucionRuta ejecucion = new EjecucionRuta();
+                ejecucion.setAsignacionId(idAsignacion);
+                ejecucion.setRuta(ruta);
+                ejecucion.setVehiculo(vehiculo);
+                ejecucion.setOperador(operador);
+                ejecucion.setFechaProgramada(hoy);
+                ejecucion.setFechaInicio(OffsetDateTime.now(ZONA_OAXACA));
+                ejecucion.setEstado(EstadoEjecucion.EN_CURSO);
+                vehiculo.setEstado(EstadoVehiculo.EN_RUTA);
+                entityManager.persist(ejecucion);
+                entityManager.flush();
+
+                return aDTO(ejecucion);
         }
 
         // ------------------------------------------------------------
