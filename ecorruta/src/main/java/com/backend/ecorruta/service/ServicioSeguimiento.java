@@ -31,7 +31,6 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class ServicioSeguimiento {
 
-        /** Minutos sin reportar posición para marcarla como "no actualizada" (HU-22 CA3). */
         private static final int MINUTOS_DESACTUALIZADA = 5;
 
         private final EntityManager entityManager;

@@ -13,9 +13,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import lombok.RequiredArgsConstructor;
 
-/**
- * Consulta ciudadana: dónde va el camión de la colonia (HU-22).
- */
+
 @RestController
 @RequestMapping("/api/seguimiento")
 @RequiredArgsConstructor
@@ -23,13 +21,11 @@ public class ControladorSeguimiento {
 
         private final ServicioSeguimiento servicioSeguimiento;
 
-        /** Unidades en recorrido y horarios de la colonia del usuario con sesión. */
         @GetMapping("/mi-colonia")
         public SeguimientoColoniaDTO miColonia(Authentication authentication) {
                 return servicioSeguimiento.seguimientoDeMiColonia(authentication.getName());
         }
 
-        /** Lo mismo para cualquier colonia (por si el ciudadano consulta otra). */
         @GetMapping("/colonia")
         public SeguimientoColoniaDTO colonia(
                         @RequestParam("nombre") @NotBlank String nombre,
