@@ -5,7 +5,7 @@ import java.time.OffsetDateTime;
 
 /**
  * Muestra de ubicación registrada.
- * guardada = false cuando la posición no cambió lo suficiente y no se almacenó (RNF10).
+ * Cada clic en actualizar ubicación genera una nueva muestra del recorrido.
  */
 public record UbicacionRespuestaDTO(
                 boolean guardada,
