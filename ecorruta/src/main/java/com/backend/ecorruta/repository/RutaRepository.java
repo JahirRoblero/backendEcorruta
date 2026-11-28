@@ -9,6 +9,8 @@ import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import com.backend.ecorruta.dto.RutaAdminDTO;
+
 
 public interface RutaRepository
     extends JpaRepository<Ruta, String> {
@@ -63,5 +65,23 @@ public interface RutaRepository
 
     String getGeometria();
   }
+
+  @Query("""
+      SELECT new com.backend.ecorruta.dto.RutaAdminDTO(
+          r.nombre, r.descripcion, r.distanciaKm, r.activo,
+          r.fechaCreacion, SIZE(r.colonias))
+      FROM Ruta r
+      ORDER BY r.nombre ASC
+      """)
+  List<RutaAdminDTO> buscarTodasParaAdmin();
+
+    @Query("""
+      SELECT new com.backend.ecorruta.dto.RutaAdminDTO(
+          r.nombre, r.descripcion, r.distanciaKm, r.activo,
+          r.fechaCreacion, SIZE(r.colonias))
+      FROM Ruta r
+      WHERE r.nombre = :nombre
+      """)
+  Optional<RutaAdminDTO> buscarUnaParaAdmin(@Param("nombre") String nombre);
 
 }

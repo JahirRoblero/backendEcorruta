@@ -5,4 +5,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface EjecucionRutaRepository
                 extends JpaRepository<EjecucionRuta, Integer> {
+
+        boolean existsByRutaNombre(String nombre);
 }

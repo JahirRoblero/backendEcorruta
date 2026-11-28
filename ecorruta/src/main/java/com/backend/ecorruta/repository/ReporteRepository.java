@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import com.backend.ecorruta.enumeraciones.EstadoReporte;
 import com.backend.ecorruta.model.Reporte;
 
 public interface ReporteRepository
@@ -89,5 +90,24 @@ public interface ReporteRepository
             ORDER BY r.fecha_reporte DESC, r.id_reporte DESC
             """, nativeQuery = true)
     List<ReporteVista> todosLosReportes();
+
+    // ===== Panel admin (Ángel) =====
+
+    @Query("""
+            select r from Reporte r
+            join fetch r.usuario
+            join fetch r.colonia
+            order by r.fechaReporte desc, r.idReporte desc
+            """)
+    List<Reporte> buscarTodosParaAdmin();
+
+    @Query("""
+            select r from Reporte r
+            join fetch r.usuario
+            join fetch r.colonia
+            where r.estado = :estado
+            order by r.fechaReporte desc, r.idReporte desc
+            """)
+    List<Reporte> buscarPorEstadoParaAdmin(@Param("estado") EstadoReporte estado);
 
 }
